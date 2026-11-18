@@ -154,3 +154,7 @@ export const QUALIF = [
   "Diplômé inter-universitaire en procréation médicale assistée : FIV, ICSI, IIU",
   "Diplômé européen inter-universitaire de cœlio-chirurgie diagnostique et thérapeutique",
 ];
+
+// CABINET PHOTOS: upload each photo to the "public" folder, then list it here.
+// Example: { src: "/cabinet-1.jpg", alt: "La salle de consultation" },
+export const PHOTOS: { src: string; alt: string }[] = [];
