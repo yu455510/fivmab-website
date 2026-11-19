@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   RDV, FB, MAIL, TEL, TEL_TXT, TEL_CAB, TEL_CAB_TXT, MAPS, CONSENT, PHOTOS, NEWS, VIDEOS,
-  EXPLO, PRETRAIT, TECH, ECHO, CHIRURGIE, PATHO, MATERNITE, FICHES, CAS, QUALIF,
+  EXPLO, PRETRAIT, TECH, ECHO, CHIRURGIE, PATHO, MATERNITE, FICHES, CAS, FAQ, QUALIF,
 } from "./content";
 import type { Item, NewsItem, BulletItem } from "./content";
 
@@ -20,6 +20,7 @@ const NAV: { l: string; h: string; sub?: { l: string; h: string }[] }[] = [
   ] },
   { l: "En pratique", h: "pratique/cas-cliniques", sub: [
     { l: "Cas cliniques", h: "pratique/cas-cliniques" },
+    { l: "Foire aux questions", h: "pratique/faq" },
     { l: "Le cabinet en images", h: "galerie" },
     { l: "Actualités", h: "actualites" },
     { l: "Contact et horaires", h: "contact" },
@@ -49,6 +50,20 @@ function Icon({ n }: { n: string }) {
   return <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d={p[n]} /></svg>;
 }
 
+function Body({ text }: { text: string }) {
+  return (
+    <>
+      {text.split("\n\n").map((p, k) =>
+        p.startsWith("- ") ? (
+          <ul className="ticks" key={k}>{p.split("\n").map((l) => <li key={l}>{l.slice(2)}</li>)}</ul>
+        ) : (
+          <p key={k}>{p}</p>
+        )
+      )}
+    </>
+  );
+}
+
 function Acc({ items, open = false, search = false }: { items: Item[]; open?: boolean; search?: boolean }) {
   const [q, setQ] = useState("");
   const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -63,7 +78,7 @@ function Acc({ items, open = false, search = false }: { items: Item[]; open?: bo
       )}
       <div className="acc">
         {shown.map((i) => (
-          <details key={i.t} open={open}><summary>{i.t}</summary><p>{i.d}</p></details>
+          <details key={i.t} open={open}><summary>{i.t}</summary><Body text={i.d} /></details>
         ))}
         {shown.length === 0 && <p className="lead">Aucun résultat. Essayez un autre mot.</p>}
       </div>
@@ -598,7 +613,16 @@ function Pages({ route }: { route: string }) {
       return b === "fiches"
         ? <Listing route="obstetrique/fiches" title="Fiches pratiques maternité" intro="Des réponses claires à vos questions pendant la grossesse et après l’accouchement."><Acc items={FICHES} search /></Listing>
         : <Listing route="obstetrique/maternite" title="Maternité" intro="Un suivi personnalisé de la préconception aux suites de couches."><Acc items={MATERNITE} /></Listing>;
-    case "pratique": return <Listing route="pratique/cas-cliniques" title="Cas cliniques" intro="Exemples de parcours de patientes. Les cas sont anonymisés."><Acc items={CAS} open /></Listing>;
+    case "pratique":
+      return b === "faq" ? (
+        <Listing route="pratique/faq" title="Foire aux questions" intro="Les réponses aux questions les plus fréquentes sur la consultation de gynécologie et la chirurgie.">
+          <Acc items={FAQ} search />
+        </Listing>
+      ) : (
+        <Listing route="pratique/cas-cliniques" title="Cas cliniques" intro="Exemples de parcours de patientes. Les cas sont anonymisés.">
+          <Acc items={CAS} open />
+        </Listing>
+      );
     case "galerie": return <GalleryPage route="galerie" />;
     case "actualites": return <NewsPage route="actualites" />;
     case "contact": return <Contact route="contact" />;
@@ -649,6 +673,11 @@ export default function App() {
           <small>Les informations de ce site ne remplacent pas une consultation médicale.</small>
         </div>
       </footer>
+      <div className="mbar">
+        <a href={RDV}><Icon n="cal" />Rendez-vous</a>
+        <a href={"tel:" + TEL_CAB}><Icon n="phone" />Appeler</a>
+        <a href={MAPS}><Icon n="pin" />Itinéraire</a>
+      </div>
     </>
   );
 }
