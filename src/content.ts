@@ -1,12 +1,18 @@
 export type Item = { t: string; d: string };
+export type BulletItem = string | { text: string; links?: { label: string; href: string }[] };
 
 export const RDV = "https://www.dabadoc.com/medecins/youssef-benjelloun-gynecologue-rabat";
 export const FB = "https://www.facebook.com/Gynecologue.Fertologue.Obstetricien";
 export const MAIL = "contact@fivmab.com";
 export const TEL = "+212648800227";
 export const TEL_TXT = "06 48 80 02 27";
+export const TEL_CAB = "+212550106710";
+export const TEL_CAB_TXT = "05 50 10 67 10";
 export const MAPS = "https://www.google.com/maps/search/?api=1&query=32+Avenue+Tadla+Mabella+Rabat";
-export const CONSENT = "http://www.fivmab.com/DocsFIVMAB/consentement.docx";
+// Documents to download. They are on the old site for now.
+// Before moving fivmab.com to the new site: download them, put them in public/docs/ and change DOCS to "/docs/".
+export const DOCS = "https://www.fivmab.com/DocsFIVMAB/";
+export const CONSENT = DOCS + "consentement.docx";
 
 export const EXPLO = [
   "Colposcopie, échographie endovaginale (2D/3D, 4D de dernière génération, 5D), Doppler pulsé/couleur",
@@ -22,23 +28,24 @@ export const PRETRAIT = [
   "Salpingectomies pré-FIV",
   "Reperméabilisation des trompes de Fallope",
 ];
-export const TECH = [
+export const TECH: BulletItem[] = [
   "Cycles stimulés avec rapports spontanés",
-  "Insémination artificielle intra-utérine avec sperme du conjoint",
-  "Fécondation in vitro : FIVETTE et injection intracytoplasmique de spermatozoïdes (ICSI)",
+  { text: "Insémination artificielle intra-utérine avec sperme du conjoint", links: [{ label: "Télécharger : convention et consentement – IIU", href: DOCS + "IIU.docx" }] },
+  { text: "Fécondation in vitro : FIVETTE et injection intracytoplasmique de spermatozoïdes (ICSI)", links: [{ label: "Télécharger : convention et consentement – FIV", href: DOCS + "Consentement-FIV.docx" }] },
   "Extraction de spermatozoïdes des testicules (TESE)",
-  "Congélation de spermatozoïdes",
-  "Congélation d’ovocytes",
-  "Congélation et transfert des embryons",
+  { text: "Congélation de spermatozoïdes", links: [{ label: "Télécharger : convention et consentement – cryopréservation de sperme", href: DOCS + "Preservation_des_gametes_males.docx" }] },
+  { text: "Congélation d’ovocytes", links: [{ label: "Télécharger : convention et consentement – cryopréservation d’ovocytes", href: DOCS + "Preservation_de_fertilite_feminine.docx" }] },
+  { text: "Congélation et transfert des embryons", links: [{ label: "Télécharger : convention sur le nombre d’embryons à transférer", href: DOCS + "Transfert_dembryon_congele.docx" }] },
 ];
-export const ECHO = [
+const ECHO_BASE = "https://fivmab.com/index.php/assistance-a-la-procreation/echographies/";
+export const ECHO: BulletItem[] = [
   "Obstétricale 2D : morphologique du 1er et 2e trimestre, estimation pondérale et croissance du 3e trimestre",
   "Endovaginale / endorectale",
-  "4D : gynécologique et obstétricale, avec option scan 3DXI, compte et mesure automatique des follicules ovariens",
-  "5D : enregistrement et restitution des plans de coupe, calcul automatique des principales mesures de l’échographie morphologique (ex. clarté nucale)",
-  "HD-Live : l’imagerie fœtale la plus proche de la réalité au premier et au deuxième trimestre",
+  { text: "4D : gynécologique et obstétricale, avec option scan 3DXI, compte et mesure automatique des follicules ovariens", links: [{ label: "Échographie obstétricale 4D", href: ECHO_BASE + "echo-obstetricale-4d" }, { label: "Comptage des follicules ovariens", href: ECHO_BASE + "comptage-des-follicules-ovariens" }] },
+  { text: "5D : enregistrement et restitution des plans de coupe, calcul automatique des principales mesures de l’échographie morphologique (ex. clarté nucale)", links: [{ label: "Mesure de la clarté nucale", href: ECHO_BASE + "mesure-de-la-clarete-nucale" }] },
+  { text: "HD-Live : l’imagerie fœtale la plus proche de la réalité au premier et au deuxième trimestre", links: [{ label: "Échographie HD-Live", href: ECHO_BASE + "echo-obstetricale-hd-live" }] },
   "Doppler pulsé couleur",
-  "Mammaire 2D – 3D avec élastographie",
+  "Mammaire 2D - 3D avec élastographie",
 ];
 
 export const CHIRURGIE: Item[] = [
@@ -157,4 +164,28 @@ export const QUALIF = [
 
 // CABINET PHOTOS: upload each photo to the "public" folder, then list it here.
 // Example: { src: "/cabinet-1.jpg", alt: "La salle de consultation" },
-export const PHOTOS: { src: string; alt: string }[] = [];
+export const PHOTOS: { src: string; alt: string }[] = [
+  { src: "/cabinet-1.jpg", alt: "La salle d’attente du cabinet : fauteuils, canapé et œuvres d’art" },
+  { src: "/cabinet-2.jpg", alt: "La salle d’attente, lumineuse et calme" },
+  { src: "/cabinet-3.jpg", alt: "L’accueil et le couloir du cabinet" },
+  { src: "/cabinet-4.jpg", alt: "La plaque à l’entrée : appartement 17, 4e étage" },
+];
+
+export type NewsItem = { id: string; tag: string; title: string; summary: string; date?: string; image?: string };
+
+// NEWS: add new items at the TOP of this list (date and image are optional).
+export const NEWS: NewsItem[] = [
+  { id: "prep", tag: "Maternité", title: "Préparation à l’accouchement", summary: "Des séances avec les sages-femmes Soukaina et Basma, à Mabella, du lundi au vendredi de 16h00 à 18h00." },
+  { id: "echo", tag: "Échographie", title: "Échographie 4D, 5D et HD-Live", summary: "Imagerie fœtale haute définition au premier et au deuxième trimestre, avec calcul automatique de la clarté nucale." },
+  { id: "fertilite", tag: "Fertilité", title: "Préserver votre fertilité", summary: "Congélation d’ovocytes, d’embryons et de spermatozoïdes : parlez-en lors de votre consultation." },
+];
+
+// VIDEOS: the first video appears on the homepage; all appear on the gallery page.
+export const VIDEOS: { id: string; title: string; titleAr?: string; text: string }[] = [
+  {
+    id: "tUTbKQNopZE",
+    title: "La FIV expliquée par le Dr Benjelloun",
+    titleAr: "أطفال الأنابيب : كيف يمكننا تفادي فشل العملية وما هي نسبة نجاحها؟",
+    text: "Extrait du programme « Votre santé » de DabaDoc (2019), en arabe : le Dr Youssef Benjelloun et le Dr Adil Sadiq répondent aux questions sur la fécondation in vitro.",
+  },
+];

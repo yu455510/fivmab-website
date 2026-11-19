@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
-  RDV, FB, MAIL, TEL, TEL_TXT, MAPS, CONSENT, PHOTOS,
+  RDV, FB, MAIL, TEL, TEL_TXT, TEL_CAB, TEL_CAB_TXT, MAPS, CONSENT, PHOTOS, NEWS, VIDEOS,
   EXPLO, PRETRAIT, TECH, ECHO, CHIRURGIE, PATHO, MATERNITE, FICHES, CAS, QUALIF,
 } from "./content";
-import type { Item } from "./content";
+import type { Item, NewsItem, BulletItem } from "./content";
 
 const NAV: { l: string; h: string; sub?: { l: string; h: string }[] }[] = [
   { l: "Accueil", h: "" },
@@ -20,6 +20,8 @@ const NAV: { l: string; h: string; sub?: { l: string; h: string }[] }[] = [
   ] },
   { l: "En pratique", h: "pratique/cas-cliniques", sub: [
     { l: "Cas cliniques", h: "pratique/cas-cliniques" },
+    { l: "Le cabinet en images", h: "galerie" },
+    { l: "Actualités", h: "actualites" },
     { l: "Contact et horaires", h: "contact" },
   ] },
 ];
@@ -41,6 +43,7 @@ function Icon({ n }: { n: string }) {
     mail: "M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 7l9 6 9-6",
     phone: "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z",
     clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+    doc: "M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM14 3v5h5M8 13h8M8 17h8",
     cal: "M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4",
   };
   return <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d={p[n]} /></svg>;
@@ -68,8 +71,29 @@ function Acc({ items, open = false, search = false }: { items: Item[]; open?: bo
   );
 }
 
-function Bullets({ items }: { items: string[] }) {
-  return <ul className="ticks">{items.map((i) => <li key={i}>{i}</li>)}</ul>;
+function Bullets({ items }: { items: BulletItem[] }) {
+  return (
+    <ul className="ticks">
+      {items.map((i) => {
+        const o: Exclude<BulletItem, string> = typeof i === "string" ? { text: i } : i;
+        return (
+          <li key={o.text}>
+            <span>{o.text}</span>
+            {o.links && (
+              <span className="links">
+                {o.links.map((l) => (
+                  <a className="doc-link" key={l.href} href={l.href} target="_blank" rel="noopener noreferrer">
+                    <Icon n="doc" />
+                    {l.label}
+                  </a>
+                ))}
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 function SubNav({ route }: { route: string }) {
@@ -138,18 +162,46 @@ function Procreation({ tab }: { tab?: string }) {
   );
 }
 
+const DAYS = ["L", "M", "M", "J", "V", "S", "D"];
+const DAY_NAMES = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+const SLOTS = [
+  { t: "Consultations de gynécologie-obstétrique", note: "Sur rendez-vous", time: "14h00 – 19h00", place: "Cabinet, Mabella", days: [0, 1, 2, 3] },
+  { t: "Diagnostic de l’infertilité et monitorage", time: "11h00 – 14h00", place: "Cabinet, Mabella", days: [0, 1, 2, 3, 4] },
+  { t: "Ponctions, transferts, congélations, inséminations", time: "08h00 – 11h00", place: "Centre Noor", days: [0, 1, 2, 3, 4] },
+  { t: "Chirurgie gynécologique programmée", time: "07h00 – 09h00", place: "Cliniques Les Ambassadeurs, Tour Hassan, Benjelloun et Beauséjour", days: [0, 1, 2] },
+  { t: "Préparation à l’accouchement", time: "16h00 – 18h00", place: "Cabinet, Mabella, avec les sages-femmes Soukaina et Basma", days: [0, 1, 2, 3, 4] },
+];
+
 function Hours() {
+  const today = (new Date().getDay() + 6) % 7;
   return (
-    <dl className="hours">
-      <dt>Consultations de gynécologie-obstétrique</dt>
-      <dd>Sur rendez-vous, lundi au jeudi, 14h00 – 19h00 (Mabella)</dd>
-      <dt>Diagnostic de l’infertilité et monitorage</dt>
-      <dd>Lundi au vendredi, 11h00 – 14h00 (Mabella)</dd>
-      <dt>Ponctions, transferts, congélations, inséminations</dt>
-      <dd>Lundi au vendredi, 08h00 – 11h00 (Centre Noor)</dd>
-      <dt>Préparation à l’accouchement</dt>
-      <dd>Lundi au vendredi, 16h00 – 18h00 (Mabella)</dd>
-    </dl>
+    <div className="sched">
+      <div className="sched-urgent">
+        <div>
+          <b>Urgences et accouchements</b>
+          <span>24h/24 et 7j/7 · cliniques Les Ambassadeurs, Tour Hassan, Benjelloun et Beauséjour</span>
+        </div>
+        <a className="btn" href={"tel:" + TEL}>Urgences : {TEL_TXT}</a>
+      </div>
+      <ul className="sched-list">
+        {SLOTS.map((s) => (
+          <li className="slot" key={s.t}>
+            <div>
+              <h4>{s.t}{s.note && <em>{s.note}</em>}</h4>
+              <p className="slot-place"><Icon n="pin" />{s.place}</p>
+            </div>
+            <div className="slot-time"><Icon n="clock" />{s.time}</div>
+            <div className="week" role="img" aria-label={"Jours : " + s.days.map((d) => DAY_NAMES[d]).join(", ")}>
+              {DAYS.map((d, i) => (
+                <span key={i} title={DAY_NAMES[i]} className={(s.days.includes(i) ? "on " : "") + (i === today ? "today" : "")}>{d}</span>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="legend"><i className="dot on" /> jours d’activité <i className="dot today" /> aujourd’hui</p>
+      <p className="sched-note">En cas d’absence, le Dr Benjelloun est remplacé par des confrères gynécologues-obstétriciens de ces mêmes cliniques.</p>
+    </div>
   );
 }
 
@@ -199,23 +251,120 @@ function Gallery() {
   );
 }
 
-function Home() {
+function VideoPlayer({ id, title }: { id: string; title: string }) {
+  const [play, setPlay] = useState(false);
   return (
-    <>
-      <section className="hero">
-        <div className="blobs" aria-hidden="true"><i /><i /><i /></div>
-        <div className="wrap hero-grid">
+    <div className="video">
+      {play ? (
+        <iframe
+          src={"https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&rel=0"}
+          title={title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <button className="video-play" onClick={() => setPlay(true)} aria-label={"Lire la vidéo : " + title} style={{ backgroundImage: "url(https://i.ytimg.com/vi/" + id + "/hqdefault.jpg)" }}>
+          <span className="play-ico" aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function VideoSection() {
+  if (VIDEOS.length === 0) return null;
+  const v = VIDEOS[0];
+  return (
+    <section className="alt">
+      <div className="wrap video-grid">
+        <div>
+          <p className="eyebrow">En vidéo</p>
+          <h2>{v.title}</h2>
+          <p className="lead">{v.text}</p>
+          {v.titleAr && <p className="video-ar" lang="ar" dir="rtl">{v.titleAr}</p>}
+          <div className="cta">
+            <a className="btn" href={RDV}>Prendre rendez-vous</a>
+            <a className="btn ghost" href="#/galerie">Voir plus</a>
+          </div>
+        </div>
+        <VideoPlayer id={v.id} title={v.titleAr || v.title} />
+      </div>
+    </section>
+  );
+}
+
+function NewsCards({ items }: { items: NewsItem[] }) {
+  return (
+    <div className="news-grid">
+      {items.map((n) => (
+        <article className="card news-card" key={n.id}>
+          {n.image && <img className="news-img" src={n.image} alt={n.title} loading="lazy" />}
+          <span className="news-tag">{n.tag}</span>
+          <h3>{n.title}</h3>
+          <p>{n.summary}</p>
+          {n.date && <p className="news-date">{n.date}</p>}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function NewsSection() {
+  if (NEWS.length === 0) return null;
+  return (
+    <section>
+      <div className="wrap">
+        <div className="sec-head">
           <div>
-            <p className="eyebrow">Rabat · Mabella</p>
-            <h1>Un accompagnement attentif, du désir d’enfant jusqu’à l’accouchement.</h1>
-            <p className="lead">
-              Le Dr Youssef Benjelloun est spécialisé dans la préservation de la fertilité, le diagnostic et le
-              traitement de la stérilité (FIV, IIU, ICSI), ainsi que dans l’obstétrique et la chirurgie gynécologique.
-            </p>
-            <div className="cta">
-              <a className="btn" href={RDV}>Prendre rendez-vous sur DabaDoc</a>
-              <a className="btn ghost" href="#/dr-benjelloun">Découvrir le Dr Benjelloun</a>
-           const TERMS = ["Fécondation in vitro", "ICSI", "Insémination intra-utérine", "Congélation d’ovocytes", "Préservation de la fertilité", "Échographie 4D · 5D · HD-Live", "Colposcopie", "Cœlioscopie", "Hystéroscopie", "Suivi de grossesse", "Préparation à l’accouchement"];
+            <p className="eyebrow">Au cabinet</p>
+            <h2>Actualités et informations</h2>
+          </div>
+          <a className="btn ghost" href="#/actualites">Tout voir →</a>
+        </div>
+        <NewsCards items={NEWS.slice(0, 3)} />
+      </div>
+    </section>
+  );
+}
+
+function NewsPage({ route }: { route: string }) {
+  return (
+    <Listing route={route} title="Actualités" intro="Les nouveautés et informations pratiques du cabinet du Dr Youssef Benjelloun.">
+      {NEWS.length === 0 ? <p className="lead">Aucune actualité pour le moment.</p> : <NewsCards items={NEWS} />}
+    </Listing>
+  );
+}
+
+function GalleryPage({ route }: { route: string }) {
+  const [big, setBig] = useState<string | null>(null);
+  return (
+    <Listing route={route} title="Le cabinet en images" intro="Photos et vidéo du cabinet et du Dr Youssef Benjelloun.">
+      {VIDEOS.map((v) => (
+        <div className="video-block" key={v.id}>
+          <VideoPlayer id={v.id} title={v.titleAr || v.title} />
+          <p className="video-cap">{v.text}</p>
+        </div>
+      ))}
+      {PHOTOS.length === 0 ? (
+        <p className="lead">Les photos du cabinet seront ajoutées prochainement.</p>
+      ) : (
+        <div className="gallery">
+          {PHOTOS.map((p) => (
+            <figure key={p.src}>
+              <button onClick={() => setBig(p.src)} aria-label={"Agrandir : " + p.alt}><img src={p.src} alt={p.alt} loading="lazy" /></button>
+              <figcaption>{p.alt}</figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+      {big && (
+        <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setBig(null)}><img src={big} alt="" /></div>
+      )}
+    </Listing>
+  );
+}
+
+const TERMS = ["Fécondation in vitro", "ICSI", "Insémination intra-utérine", "Congélation d’ovocytes", "Préservation de la fertilité", "Échographie 4D · 5D · HD-Live", "Colposcopie", "Cœlioscopie", "Hystéroscopie", "Suivi de grossesse", "Préparation à l’accouchement"];
 
 const STEPS = [
   { n: "01", t: "Écouter et comprendre", d: "Consultation, bilan complet du couple et échographies pour identifier l’origine de l’infertilité.", h: "procreation/exploration" },
@@ -318,6 +467,8 @@ function Home() {
         </div>
       </section>
 
+      <VideoSection />
+
       <section className="voice">
         <div className="wrap">
           <figure>
@@ -329,6 +480,8 @@ function Home() {
 
       <Gallery />
 
+      <NewsSection />
+
       <section>
         <div className="wrap visit">
           <div className="card">
@@ -337,7 +490,8 @@ function Home() {
           </div>
           <div className="card visit-side">
             <h3>Au cabinet</h3>
-            <p>32 avenue Tadla, Mabella<br />Rabat</p>
+            <p>32 avenue Tadla, Mabella<br />Appartement 17, 4e étage<br />Rabat</p>
+            <p>Tél. : <a href={"tel:" + TEL_CAB}>{TEL_CAB_TXT}</a></p>
             <div className="cta"><a className="btn" href={MAPS}>Itinéraire</a><a className="btn ghost" href="#/contact">Urgences et contact</a></div>
           </div>
         </div>
@@ -346,7 +500,19 @@ function Home() {
   );
 }
 
-           <li><b>Société savante</b>Membre titulaire de la Société Royale de Gynécologie Obstétrique</li>
+function Doctor({ route }: { route: string }) {
+  return (
+    <>
+      <PageHero route={route} title="Dr Youssef Benjelloun" intro="Chirurgien gynécologue et obstétricien à Rabat, spécialisé dans la préservation de la fertilité et le traitement de la stérilité (FIV, IIU, ICSI)." />
+      <div className="wrap page">
+        <div className="doc-grid">
+          <aside className="doc-side">
+            <img className="portrait" src="/doctor.jpg" alt="Dr Youssef Benjelloun" />
+            <ul className="facts">
+              <li><b>Ordre des médecins</b>n° 6807 · carte professionnelle n° 5285/RSZZ (Conseil de la Région Nord)</li>
+              <li><b>Langues</b>Français, arabe, anglais, espagnol</li>
+              <li><b>Tarif indicatif</b>Consultation avec échographie : 700 dhs. Conventionné secteur privé, honoraires libres.</li>
+              <li><b>Société savante</b>Membre titulaire de la Société Royale de Gynécologie Obstétrique</li>
             </ul>
             <a className="btn" href={RDV}>Prendre rendez-vous</a>
           </aside>
@@ -391,8 +557,9 @@ function Contact({ route }: { route: string }) {
       <div className="wrap page">
         <SubNav route={route} />
         <div className="cards">
-          <div className="card"><Icon n="pin" /><h3>Cabinet</h3><p>32 avenue Tadla, Mabella<br />Rabat, CP 10180</p><p><a href={MAPS}>Ouvrir dans Google Maps</a></p></div>
+          <div className="card"><Icon n="pin" /><h3>Cabinet</h3><p>32 avenue Tadla, Mabella<br />Appartement 17, 4e étage<br />Rabat, CP 10180</p><p><a href={MAPS}>Ouvrir dans Google Maps</a></p></div>
           <div className="card"><Icon n="cal" /><h3>Rendez-vous</h3><p><a href={RDV}>Prendre rendez-vous sur DabaDoc</a></p><p><a href={FB}>Page Facebook</a></p></div>
+          <div className="card"><Icon n="phone" /><h3>Téléphone du cabinet</h3><p><a href={"tel:" + TEL_CAB}>{TEL_CAB_TXT}</a></p><p>Consultation sur rendez-vous</p></div>
           <div className="card"><Icon n="mail" /><h3>Écrire au cabinet</h3><p><a href={"mailto:" + MAIL}>{MAIL}</a></p></div>
           <div className="card urgent"><Icon n="phone" /><h3>Urgences</h3><p>Assistante du cabinet, Houda, 24h/24 et 7j/7 :</p><p><a href={"tel:" + TEL}>{TEL_TXT}</a></p></div>
         </div>
@@ -432,6 +599,8 @@ function Pages({ route }: { route: string }) {
         ? <Listing route="obstetrique/fiches" title="Fiches pratiques maternité" intro="Des réponses claires à vos questions pendant la grossesse et après l’accouchement."><Acc items={FICHES} search /></Listing>
         : <Listing route="obstetrique/maternite" title="Maternité" intro="Un suivi personnalisé de la préconception aux suites de couches."><Acc items={MATERNITE} /></Listing>;
     case "pratique": return <Listing route="pratique/cas-cliniques" title="Cas cliniques" intro="Exemples de parcours de patientes. Les cas sont anonymisés."><Acc items={CAS} open /></Listing>;
+    case "galerie": return <GalleryPage route="galerie" />;
+    case "actualites": return <NewsPage route="actualites" />;
     case "contact": return <Contact route="contact" />;
     default: return <Home />;
   }
